@@ -190,10 +190,9 @@
         </div>
     </div>
 
-    <!-- Official Vapi SDK -->
-    <script src="https://cdn.vapi.ai/bundle.js"></script>
-    
-    <script>
+    <script type="module">
+        import Vapi from 'https://esm.sh/@vapi-ai/web@2.2.0';
+
         // ========== REPLACE THESE WITH YOUR ACTUAL VALUES ==========
         const VAPI_PUBLIC_KEY = "cafa7faa-c76f-4782-b83a-7f032a1ec995";
         const VAPI_ASSISTANT_ID = "bf91a303-9e71-4b0b-b1cb-aab08c877f65";
@@ -230,8 +229,7 @@
                 document.getElementById('start-btn').disabled = true;
                 updateStatus('Connecting...', 'connecting pulse');
 
-                // Initialize Vapi
-                vapiInstance = new window.Vapi(VAPI_PUBLIC_KEY);
+                vapiInstance = new Vapi(VAPI_PUBLIC_KEY);
 
                 vapiInstance.on('call-start', () => {
                     updateStatus('Interview in progress - speak clearly', 'active');
@@ -268,7 +266,6 @@
             cleanup();
         }
 
-        // Attach event listeners
         document.getElementById('start-btn').addEventListener('click', startInterview);
         document.getElementById('end-btn').addEventListener('click', endInterview);
     </script>

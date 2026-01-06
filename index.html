@@ -190,10 +190,9 @@
         </div>
     </div>
 
-    <!-- Vapi Web SDK -->
-    <script src="https://unpkg.com/@vapi-ai/web@latest/dist/vapi-web.umd.js"></script>
-    
-    <script>
+    <script type="module">
+        import Vapi from 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/+esm';
+
         // ========== REPLACE THESE WITH YOUR ACTUAL VALUES ==========
         const VAPI_PUBLIC_KEY = "cafa7faa-c76f-4782-b83a-7f032a1ec995";
         const VAPI_ASSISTANT_ID = "bf91a303-9e71-4b0b-b1cb-aab08c877f65";
@@ -216,15 +215,22 @@
             document.getElementById('timer').textContent = `${mins}:${secs}`;
         }
 
-        async function startInterview() {
+        function cleanup() {
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('end-btn').disabled = true;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        window.startInterview = async function() {
             try {
                 document.getElementById('start-btn').disabled = true;
                 updateStatus('Connecting...', 'connecting pulse');
 
-                // Initialize Vapi
-                vapi = new window.Vapi(VAPI_PUBLIC_KEY);
+                vapi = new Vapi(VAPI_PUBLIC_KEY);
 
-                // Set up event listeners
                 vapi.on('call-start', () => {
                     updateStatus('Interview in progress - speak clearly', 'active');
                     document.getElementById('end-btn').disabled = false;
@@ -243,15 +249,6 @@
                     cleanup();
                 });
 
-                vapi.on('speech-start', () => {
-                    // AI is speaking
-                });
-
-                vapi.on('speech-end', () => {
-                    // AI stopped speaking
-                });
-
-                // Start the call
                 await vapi.start(VAPI_ASSISTANT_ID);
 
             } catch (error) {
@@ -261,21 +258,12 @@
             }
         }
 
-        function endInterview() {
+        window.endInterview = function() {
             if (vapi) {
                 vapi.stop();
             }
             updateStatus('Interview ended', 'ended');
             cleanup();
-        }
-
-        function cleanup() {
-            document.getElementById('start-btn').disabled = false;
-            document.getElementById('end-btn').disabled = true;
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
         }
     </script>
 </body>

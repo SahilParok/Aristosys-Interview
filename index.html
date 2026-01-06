@@ -170,10 +170,10 @@
         <div class="status ready" id="status">Ready to begin</div>
         
         <div id="buttons">
-            <button class="btn btn-start" id="start-btn" onclick="startInterview()">
+            <button class="btn btn-start" id="start-btn">
                 Start Interview
             </button>
-            <button class="btn btn-end" id="end-btn" onclick="endInterview()" disabled>
+            <button class="btn btn-end" id="end-btn" disabled>
                 End Interview
             </button>
         </div>
@@ -190,15 +190,16 @@
         </div>
     </div>
 
-    <script type="module">
-        import Vapi from 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/+esm';
-
+    <!-- Official Vapi SDK -->
+    <script src="https://cdn.vapi.ai/bundle.js"></script>
+    
+    <script>
         // ========== REPLACE THESE WITH YOUR ACTUAL VALUES ==========
         const VAPI_PUBLIC_KEY = "cafa7faa-c76f-4782-b83a-7f032a1ec995";
         const VAPI_ASSISTANT_ID = "bf91a303-9e71-4b0b-b1cb-aab08c877f65";
         // ===========================================================
 
-        let vapi = null;
+        let vapiInstance = null;
         let timerInterval = null;
         let seconds = 0;
 
@@ -224,32 +225,33 @@
             }
         }
 
-        window.startInterview = async function() {
+        async function startInterview() {
             try {
                 document.getElementById('start-btn').disabled = true;
                 updateStatus('Connecting...', 'connecting pulse');
 
-                vapi = new Vapi(VAPI_PUBLIC_KEY);
+                // Initialize Vapi
+                vapiInstance = new window.Vapi(VAPI_PUBLIC_KEY);
 
-                vapi.on('call-start', () => {
+                vapiInstance.on('call-start', () => {
                     updateStatus('Interview in progress - speak clearly', 'active');
                     document.getElementById('end-btn').disabled = false;
                     document.getElementById('timer').classList.add('visible');
                     timerInterval = setInterval(updateTimer, 1000);
                 });
 
-                vapi.on('call-end', () => {
+                vapiInstance.on('call-end', () => {
                     updateStatus('Interview completed - thank you!', 'ended');
                     cleanup();
                 });
 
-                vapi.on('error', (error) => {
+                vapiInstance.on('error', (error) => {
                     console.error('Vapi error:', error);
                     updateStatus('Connection error - please refresh and try again', 'error');
                     cleanup();
                 });
 
-                await vapi.start(VAPI_ASSISTANT_ID);
+                await vapiInstance.start(VAPI_ASSISTANT_ID);
 
             } catch (error) {
                 console.error('Failed to start interview:', error);
@@ -258,13 +260,17 @@
             }
         }
 
-        window.endInterview = function() {
-            if (vapi) {
-                vapi.stop();
+        function endInterview() {
+            if (vapiInstance) {
+                vapiInstance.stop();
             }
             updateStatus('Interview ended', 'ended');
             cleanup();
         }
+
+        // Attach event listeners
+        document.getElementById('start-btn').addEventListener('click', startInterview);
+        document.getElementById('end-btn').addEventListener('click', endInterview);
     </script>
 </body>
 </html>

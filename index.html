@@ -191,7 +191,7 @@
     </div>
 
     <!-- Vapi Web SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@2.3.0/dist/vapi.min.js"></script>
+    <script src="https://unpkg.com/@vapi-ai/web@latest/dist/vapi-web.umd.js"></script>
     
     <script>
         // ========== REPLACE THESE WITH YOUR ACTUAL VALUES ==========
@@ -222,7 +222,7 @@
                 updateStatus('Connecting...', 'connecting pulse');
 
                 // Initialize Vapi
-                vapi = new Vapi(VAPI_PUBLIC_KEY);
+                vapi = new window.Vapi(VAPI_PUBLIC_KEY);
 
                 // Set up event listeners
                 vapi.on('call-start', () => {

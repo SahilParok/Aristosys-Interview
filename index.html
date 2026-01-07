@@ -24,7 +24,7 @@
         .container {
             text-align: center;
             padding: 40px;
-            max-width: 500px;
+            max-width: 600px;
         }
 
         .logo {
@@ -40,6 +40,39 @@
             color: #8892b0;
             margin-bottom: 40px;
             font-size: 1.1rem;
+        }
+
+        .role-selector {
+            margin-bottom: 30px;
+        }
+
+        .role-selector label {
+            display: block;
+            margin-bottom: 10px;
+            color: #8892b0;
+            font-size: 0.95rem;
+        }
+
+        .role-selector select {
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            width: 100%;
+            max-width: 350px;
+            cursor: pointer;
+        }
+
+        .role-selector select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .role-selector select option {
+            background: #1a1a2e;
+            color: #ffffff;
         }
 
         .role-badge {
@@ -163,7 +196,15 @@
         <div class="logo">Aristosys</div>
         <div class="subtitle">AI-Powered Technical Interview</div>
         
-        <div class="role-badge">Java Backend Developer</div>
+        <div class="role-selector">
+            <label for="jd-select">Select the position you're interviewing for:</label>
+            <select id="jd-select">
+                <option value="java-backend">Java Backend Developer</option>
+                <option value="sap-abap-hana">SAP ABAP HANA Developer</option>
+            </select>
+        </div>
+
+        <div class="role-badge" id="role-badge">Java Backend Developer</div>
         
         <div class="timer" id="timer">00:00</div>
         
@@ -198,9 +239,40 @@
         const VAPI_ASSISTANT_ID = "bf91a303-9e71-4b0b-b1cb-aab08c877f65";
         // ===========================================================
 
+        // ========== JOB DESCRIPTIONS AND QUESTIONS ==========
+        const JD_DATA = {
+            "java-backend": {
+                title: "Java Backend Developer",
+                questions: `Q1 (Experience): "Tell me about a time you used Spring Boot with Java 17 or 21 to build a complex REST API application. What challenges did you face and how did you overcome them?"
+Q2 (Skill): "Describe a project where you implemented database operations using both SQL and NoSQL databases. How did you decide which database to use for different use cases?"
+Q3 (Technical): "What are the key differences between Jakarta EE and Spring Framework? When would you choose one over the other?"
+Q4 (Technical): "Explain how you would implement proper exception handling and validation in a Spring Boot REST API. What annotations and patterns would you use?"
+Q5 (Technical): "How would you set up a Jenkins pipeline for a Spring Boot application that includes code quality checks with SonarQube and deployment to different environments?"
+Q6 (Scenario): "What would you do if you discovered that your Spring Boot application's performance is degrading under high load, particularly with database operations?"
+Q7 (Scenario): "How would you handle a situation where you need to refactor a large legacy codebase to implement clean coding practices while ensuring the application remains stable and meets tight release deadlines?"`
+            },
+            "sap-abap-hana": {
+                title: "SAP ABAP HANA Developer",
+                questions: `Q1 (Experience): "How did you use SAP S/4HANA ABAP development with modern frameworks like CDS Views, RAP, or AMDP in your recent projects to solve a specific performance or business challenge?"
+Q2 (Skill): "Describe your experience developing applications on SAP BTP using CAP framework. What specific services did you use and how did you handle data integration with S/4HANA?"
+Q3 (Technical): "What are the key differences between traditional ABAP development and ABAP for S/4HANA? How do CDS Views improve performance compared to traditional SELECT statements?"
+Q4 (Technical): "Explain the RAP (RESTful ABAP Programming) model and how it differs from traditional SAP development approaches for creating APIs."
+Q5 (Technical): "In SAP Fiori development, how do you consume OData services in SAPUI5 applications and what are the best practices for handling data binding?"
+Q6 (Scenario): "What would you do if you need to integrate a third-party application with SAP S/4HANA, and the performance requirements demand real-time data synchronization across SD, MM, and FICO modules?"
+Q7 (Scenario): "How would you handle a situation where a custom Fiori application is performing poorly in production, and business users are complaining about slow response times during peak hours?"`
+            }
+        };
+        // ====================================================
+
         let vapiInstance = null;
         let timerInterval = null;
         let seconds = 0;
+
+        // Update role badge when dropdown changes
+        document.getElementById('jd-select').addEventListener('change', function() {
+            const selected = JD_DATA[this.value];
+            document.getElementById('role-badge').textContent = selected.title;
+        });
 
         function updateStatus(message, className) {
             const status = document.getElementById('status');
@@ -218,6 +290,7 @@
         function cleanup() {
             document.getElementById('start-btn').disabled = false;
             document.getElementById('end-btn').disabled = true;
+            document.getElementById('jd-select').disabled = false;
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
@@ -226,7 +299,11 @@
 
         async function startInterview() {
             try {
+                const selectedJD = document.getElementById('jd-select').value;
+                const jdInfo = JD_DATA[selectedJD];
+
                 document.getElementById('start-btn').disabled = true;
+                document.getElementById('jd-select').disabled = true;
                 updateStatus('Connecting...', 'connecting pulse');
 
                 vapiInstance = new Vapi(VAPI_PUBLIC_KEY);
@@ -249,7 +326,13 @@
                     cleanup();
                 });
 
-                await vapiInstance.start(VAPI_ASSISTANT_ID);
+                // Start with dynamic questions based on selected JD
+                await vapiInstance.start(VAPI_ASSISTANT_ID, {
+                    variableValues: {
+                        job_title: jdInfo.title,
+                        question_list: jdInfo.questions
+                    }
+                });
 
             } catch (error) {
                 console.error('Failed to start interview:', error);
